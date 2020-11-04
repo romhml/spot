@@ -1,14 +1,18 @@
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.oauth2 import OAuth2AuthorizationCodeBearer
+
 from pydantic import BaseSettings
 from typing import Optional
 
-import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from app.managers.auth import SpotifyAuthManager
 
 
 class Settings(BaseSettings):
+    origins: list[str]
     spotify_client_secret: str
     spotify_client_id: str
+    spotify_redirect_uri: str
 
     class Config:
         env_file = ".env"
@@ -16,14 +20,21 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-spotify = spotipy.Spotify(
-    auth_manager=SpotifyClientCredentials(
-        client_id=settings.spotify_client_id,
-        client_secret=settings.spotify_client_secret,
-    )
+app = FastAPI()
+
+auth = SpotifyAuthManager(
+    client_id=settings.spotify_client_id,
+    client_secret=settings.spotify_client_secret,
+    redirect_uri=settings.spotify_redirect_uri,
 )
 
-app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.on_event("startup")
@@ -36,6 +47,6 @@ async def shutdown_event():
     pass
 
 
-from .routers import player
+from .routers import auth
 
-app.include_router(player.router)
+app.include_router(auth.router, prefix="/auth")

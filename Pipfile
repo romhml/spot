@@ -8,8 +8,8 @@ verify_ssl = true
 [packages]
 uvicorn = "*"
 fastapi = "*"
-spotipy = "*"
 pydantic = {extras = ["dotenv"], version = "*"}
+requests = "*"
 
 [requires]
 python_version = "3.9"
