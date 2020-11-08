@@ -23,3 +23,14 @@ class SpotifyAuthManager(BaseModel):
         resp = requests.post(SPOTIFY_AUTH_URL, data=body)
         resp.raise_for_status()
         return resp.json()
+
+    def refresh(self, refresh_token):
+        body = {
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        }
+        resp = requests.post(SPOTIFY_AUTH_URL, data=body)
+        resp.raise_for_status()
+        return resp.json()
